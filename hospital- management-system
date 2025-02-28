@@ -1,0 +1,102 @@
+Sample SQL Scripts
+1. Create Tables
+
+CREATE TABLE Doctors (
+    doctor_id INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    specialty VARCHAR(50),
+    phone_number VARCHAR(20),
+    email VARCHAR(50)
+);
+
+CREATE TABLE Patients (
+    patient_id INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    date_of_birth DATE,
+    gender VARCHAR(10),
+    phone_number VARCHAR(20),
+    email VARCHAR(50),
+    address VARCHAR(100)
+);
+
+CREATE TABLE Appointments (
+    appointment_id INT PRIMARY KEY,
+    doctor_id INT,
+    patient_id INT,
+    appointment_date DATETIME,
+    reason_for_visit VARCHAR(100),
+    status VARCHAR(20),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id)
+);
+
+CREATE TABLE Billing (
+    bill_id INT PRIMARY KEY,
+    appointment_id INT,
+    total_amount DECIMAL(10,2),
+    payment_status VARCHAR(20),
+    payment_date DATE,
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id)
+);
+
+
+2. Insert Sample Data
+
+-- Insert into Doctors
+INSERT INTO Doctors (doctor_id, first_name, last_name, specialty, phone_number, email)
+VALUES 
+(1, 'John', 'Doe', 'Cardiology', '123-456-7890', 'jdoe@hospital.com'),
+(2, 'Jane', 'Smith', 'Neurology', '987-654-3210', 'jsmith@hospital.com');
+
+-- Insert into Patients
+INSERT INTO Patients (patient_id, first_name, last_name, date_of_birth, gender, phone_number, email, address)
+VALUES
+(101, 'Alice', 'Johnson', '1990-01-01', 'Female', '555-111-2222', 'alice@domain.com', '123 Main St'),
+(102, 'Bob', 'Williams', '1985-05-20', 'Male', '555-333-4444', 'bob@domain.com', '456 Oak Ave');
+
+-- Insert into Appointments
+INSERT INTO Appointments (appointment_id, doctor_id, patient_id, appointment_date, reason_for_visit, status)
+VALUES
+(1001, 1, 101, '2025-03-10 10:30:00', 'Check-up', 'scheduled'),
+(1002, 2, 102, '2025-03-11 09:00:00', 'Headache', 'scheduled');
+
+-- Insert into Billing
+INSERT INTO Billing (bill_id, appointment_id, total_amount, payment_status, payment_date)
+VALUES
+(501, 1001, 200.00, 'pending', NULL),
+(502, 1002, 300.00, 'pending', NULL);
+
+3. Example Queries
+Retrieve all Doctors
+SELECT * FROM Doctors;
+
+View upcoming appointments
+SELECT a.appointment_id, d.first_name AS doctor_name, p.first_name AS patient_name, a.appointment_date, a.status
+FROM Appointments a
+JOIN Doctors d ON a.doctor_id = d.doctor_id
+JOIN Patients p ON a.patient_id = p.patient_id
+WHERE a.status = 'scheduled';
+
+Find total earnings per doctor (based on Billing)
+SELECT d.doctor_id, d.first_name, d.last_name,
+       SUM(b.total_amount) AS total_earnings
+FROM Doctors d
+JOIN Appointments a ON d.doctor_id = a.doctor_id
+JOIN Billing b ON a.appointment_id = b.appointment_id
+GROUP BY d.doctor_id, d.first_name, d.last_name;
+
+Update payment status after receiving payment
+
+UPDATE Billing
+SET payment_status = 'paid',
+    payment_date = CURRENT_DATE
+WHERE bill_id = 501;
+
+
+Delete a canceled appointment
+DELETE FROM Appointments
+WHERE appointment_id = 1002
+  AND status = 'canceled';
+
